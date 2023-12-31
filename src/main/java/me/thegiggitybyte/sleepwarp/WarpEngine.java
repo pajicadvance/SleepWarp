@@ -26,7 +26,7 @@ import java.util.concurrent.CompletableFuture;
 public class WarpEngine {
     public static final int DAY_LENGTH_TICKS = 24000;
     private static WarpEngine instance;
-    private Random random;
+    private final Random random;
     
     private WarpEngine() {
         random = new Random();
@@ -107,29 +107,28 @@ public class WarpEngine {
             Collections.shuffle(chunks);
             for (var chunk : chunks) {
                 if (JsonConfiguration.getUserInstance().getValue("tick_random_block").getAsBoolean()) {
-                    CompletableFuture.runAsync(new RandomTickRunnable(world, chunk));
+                    this.execute(world, new RandomTickRunnable(world, chunk));
                 }
-                
                 if (world.isRaining()) {
                     if (JsonConfiguration.getUserInstance().getValue("tick_lightning").getAsBoolean() && world.isThundering() && random.nextInt(100000) == 0) {
-                        CompletableFuture.runAsync(new LightningTickRunnable(world, chunk));
+                        this.execute(world, new LightningTickRunnable(world, chunk));
                     }
                     
                     if (random.nextInt(16) == 0) {
-                        CompletableFuture.runAsync(new PrecipitationTickRunnable(world, chunk));
+                        this.execute(world, new PrecipitationTickRunnable(world, chunk));
                     }
                 }
             }
             
             if (JsonConfiguration.getUserInstance().getValue("tick_block_entities").getAsBoolean()) {
-                CompletableFuture.runAsync(new BlockTickRunnable(world));
+                this.execute(world, new BlockTickRunnable(world));
             }
         }
         
         var canTickAnimals = JsonConfiguration.getUserInstance().getValue("tick_animals").getAsBoolean();
         var canTickMonsters = JsonConfiguration.getUserInstance().getValue("tick_monsters").getAsBoolean();
         if (canTickAnimals | canTickMonsters) {
-            CompletableFuture.runAsync(new MobTickRunnable(world, warpTickCount));
+            this.execute(world, new MobTickRunnable(world, warpTickCount));
         }
         
         worldTime = world.getTimeOfDay() % DAY_LENGTH_TICKS;
@@ -169,5 +168,10 @@ public class WarpEngine {
         if (JsonConfiguration.getUserInstance().getValue("action_bar_messages").getAsBoolean()) {
             world.getPlayers().forEach(player -> player.sendMessage(actionBarText, true));
         }
+    }
+
+    private void execute(ServerWorld world, Runnable runnable) {
+        //CompletableFuture.runAsync(runnable);
+        world.getServer().execute(runnable);
     }
 }
