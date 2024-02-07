@@ -18,7 +18,6 @@ import net.minecraft.world.chunk.WorldChunk;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Handles incrementing time and simulating the world.
@@ -95,12 +94,14 @@ public class WarpEngine {
         
         // Accelerate time and tick world.
         var doDaylightCycle = world.worldProperties.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE);
+
+        world.getPlayers().forEach(player -> player.addExhaustion(0.35F));
         
         for (var tick = 0; tick < warpTickCount; tick++) {
             world.tickWeather();
             world.calculateAmbientDarkness();
             world.tickTime();
-            
+
             var packet = new WorldTimeUpdateS2CPacket(world.getTime(), world.getTimeOfDay(), doDaylightCycle);
             world.getServer().getPlayerManager().sendToDimension(packet, world.getRegistryKey());
             
