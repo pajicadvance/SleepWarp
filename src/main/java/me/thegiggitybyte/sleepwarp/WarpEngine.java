@@ -95,7 +95,9 @@ public class WarpEngine {
         // Accelerate time and tick world.
         var doDaylightCycle = world.worldProperties.getGameRules().getBoolean(GameRules.DO_DAYLIGHT_CYCLE);
 
-        world.getPlayers().forEach(player -> player.addExhaustion(0.35F));
+        world.getPlayers().forEach(player -> {
+            if (player.isSleeping()) player.addExhaustion(0.3F);
+        });
         
         for (var tick = 0; tick < warpTickCount; tick++) {
             world.tickWeather();
