@@ -13,7 +13,7 @@ public class BlockTickRunnable implements Runnable {
     @Override
     public void run() {
         for (BlockEntityTickInvoker tickInvoker : world.blockEntityTickers) {
-            if (!tickInvoker.isRemoved() && world.shouldTickBlockPos(tickInvoker.getPos())) {
+            if (!tickInvoker.isRemoved() && tickInvoker.getPos() != null && world.shouldTickBlockPos(tickInvoker.getPos())) {
                 tickInvoker.tick();
             }
         }
